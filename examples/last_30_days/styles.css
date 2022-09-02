@@ -12,6 +12,7 @@
 
 .value-box {
     font-family: "Raleway","Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 16px;
 }
 
 .value-box .icon i {
@@ -20,6 +21,11 @@
 
 .body {
     font-family: "Raleway","Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+
+.chart-title {
+    font-family: "Raleway","Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 16px;
 }
 
 .section.sidebar {
@@ -32,7 +38,7 @@
     width: 60px;					
     height: 28px;					
     padding: 2px;				
-    font: 12px sans-serif;		
+    font: 14px Helvetica;		
     background: lightsteelblue;	
     border: 0px;		
     border-radius: 8px;			
