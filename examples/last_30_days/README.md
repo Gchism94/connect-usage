@@ -33,7 +33,7 @@ The report uses the environment variables `CONNECT_SERVER` and `CONNECT_API_KEY`
   `CONNECT_API_KEY`), this chunk will return a clear error message promptly rather than
   waiting for the report to exit weirdly. It is there to protect you!
 
-<center><img src="report-screenshot.png" width = "600px"></center>
+<center><img src="ExampleReport_UA.png"></center>
 
 The original materials are licensed under a [MIT License](https://choosealicense.com/licenses/mit/)
 
