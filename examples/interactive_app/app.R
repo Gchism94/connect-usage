@@ -53,7 +53,7 @@ cached_get_content <- memoise::memoise(
 
 # Must include "to" or the cache can get weird!!
 data_shiny <- cached_usage_shiny(client, from = report_from, to = report_to, limit = Inf)
-# data_static <- cached_usage_static(client, from = report_from, to = report_to, limit = Inf) # ~ 3 minutes on a busy server... 😱
+data_static <- cached_usage_static(client, from = report_from, to = report_to, limit = Inf) # ~ 3 minutes on a busy server... 😱
 data_content <- cached_get_content(client, date = report_to)
 data_users <- cached_get_users(client, date = report_to, limit = Inf)
 

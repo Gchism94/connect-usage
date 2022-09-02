@@ -12,66 +12,102 @@ output:
 # if important variables are missing (CONNECT_SERVER and CONNECT_API_KEY)
 # ---------------------------------------------------------------------------
 if (
-  nchar(Sys.getenv("CONNECT_SERVER")) == 0 ||
-  nchar(Sys.getenv("CONNECT_API_KEY")) == 0
+  nchar(Sys.getenv("CONNECT_SERVER")) == 0 || # Sets the server ID
+  nchar(Sys.getenv("CONNECT_API_KEY")) == 0   # Sets the API key
 ) {
-  print(htmltools::h4("ERROR: Variables Not Defined"))
+  # Level 4 heading (####) <h4></h4>
+  print(htmltools::h4("ERROR: Variables Not Defined")) # Tells you if server ID and API are defined
   print(htmltools::div(
     "The CONNECT_SERVER and CONNECT_API_KEY",
     "environment variables are required in order for this report",
     "to pull usage data.",
-    htmltools::br(),
-    htmltools::br(),
+    htmltools::br(), # Line break <br/>
+    htmltools::br(), # Line break <br/>
+    # Tells you to define variables
     "Please define these variables",
     "and then re-run the report.",
-    htmltools::br(),
-    htmltools::br(),
-    style = "max-width: 600px"
+    htmltools::br(), # <br/>
+    htmltools::br(), # <br/>
+    style = "max-width: 600px" # Max width = 600px
   ))
-  knitr::knit_exit("Terminating the report early.")
+  knitr::knit_exit("Terminating the report early.") # Terminates the report early because of missing server ID and API key
 }
 ```
 
 ```{r setup, include=FALSE}
-library(flexdashboard)
-library(dplyr)
-library(DT)
-library(plotly)
-library(ggplot2)
-library(shiny)
-library(lubridate)
-library(blastula)
-library(prettyunits)
-library(connectapi)
+# Install and load multiple packages
+# https://statisticsglobe.com/pacman-r-package
+library(pacman)
+# Easy interactive R Markdown daskboards 
+# https://pkgs.rstudio.com/flexdashboard/
 
+pacman::p_load(
+# Easy interactive R Markdown daskboards 
+# https://pkgs.rstudio.com/flexdashboard/
+  flexdashboard,
+# Data manipulation, visualization
+# Need dplyr, ggplot, and lubridate
+  tidyverse,
+  lubridate,
+# R interface to the DataTables javascript library
+# https://rstudio.github.io/DT/
+  DT,
+# Interactive web-based plots (javascript), R interface into the plotly Python library
+# https://plotly.com/r/
+  plotly,
+# Interactive web-based apps
+  shiny,
+# Produce HTML format email information from R
+# https://github.com/rstudio/blastula
+  blastula,
+# Format quantities in human readable formats
+# https://github.com/r-lib/prettyunits
+  prettyunits,
+# R client for the RStudio Connect server API
+# https://github.com/rstudio/connectapi
+  connectapi)
+
+# Custom ggplot theme 
+# Inspired by: https://drsimonj.svbtle.com/creating-corporate-colour-palettes-for-ggplot2
 source("themes.R")
 
+# Object setting how far back the snapshot will look (30-days)
 days_back <- as.numeric(Sys.getenv("DAYSBACK", 30))
 
+# Default title for the shiny and static usage data (basically if there's no content)
 default_content_title <- "Unknown (Deleted Content?)"
 
+# Time frame to report data from, basically today to the days_back object (here, 30 days)
 report_from <- lubridate::today() - lubridate::ddays(days_back)
 
+# Connect to the RStudio Connect server
 client <- connect()
+
+# Getting the shiny usage data
 shiny <- get_usage_shiny(
-  client,
-  from = report_from,
-  limit = Inf
-) %>%
-  mutate(
-    started = lubridate::ymd_hms(started),
-    ended = lubridate::ymd_hms(ended),
-    session_duration = ended - started
-    ) %>%
-  filter(session_duration > lubridate::dseconds(5))
-content <- get_usage_static(
-  client,
-  from = report_from,
-  limit = Inf
+  client, # From the server client
+  from = report_from, # From the prescribed time interval
+  limit = Inf # No limit on the data amount
+) |>
+  mutate( # New data variables
+    started = lubridate::ymd_hms(started), # Start date that data is collected from
+    ended = lubridate::ymd_hms(ended), # End date that data is collected from
+    session_duration = ended - started # Duration that the data is pulled from
+    ) |>
+  filter(session_duration > lubridate::dseconds(5)) # Filter duration greater than 5 secs
+
+# Get static usage data (e.g., R Markdown, Jupyter Notebooks)
+content <- get_usage_static( 
+  client, # From the server client
+  from = report_from, # From the prescribed time interval
+  limit = Inf # No limit on the data amount
 )
 
-all_users <- get_users(client, page_size = 500)
+# Getting users to pull data from
+all_users <- get_users(client, # Server & API
+                       page_size = 500) # Number of records to return/page, max is 500. 
 
+# Object listing the data from shiny and content above
 data_arr <-   list(shiny = shiny, content = content)
 
 ```
@@ -93,47 +129,53 @@ Column
 ### Shiny Sessions by User (Top 5)
 
 ```{r shiny_by_user}
-data_arr$shiny %>%
-    group_by(user_guid) %>% 
-    summarise(visits = n()) %>% 
-    left_join(all_users, by = c(user_guid = "guid")) %>%
-    mutate(username = coalesce(username, "anonymous")) %>%
-    select(username, visits) %>% 
-    arrange(desc(visits)) %>% 
-    head(5) %>% 
-    {ggplot(., aes(reorder(username, visits), visits)) + 
-     geom_bar(stat = "identity") +  
-     coord_flip() + 
-     theme_rstudio() + 
-     labs(
-       y = "Number of Shiny Sessions",
-       x = NULL
-     )} %>% 
-    ggplotly(tooltip = c("y")) %>% 
-    config(displayModeBar = F)
+# Plot showing the number of shiny sessions (top 5) grouped by user
+
+data_arr$shiny |> # Shiny data within the data array from above
+    group_by(user_guid) |>  # Group by user global unique identifier 
+    summarise(visits = n()) |> # Summarize the number of visits each user made
+    left_join(all_users, by = c(user_guid = "guid")) |> # Left join the all_users frame by the global unique identifier
+    mutate(username = coalesce(username, "anonymous")) |> # New column called "username" which is a coalesced username column (gives first set of non NULL value) and replaces remaining NULL values with "anonymous". 
+    select(username, visits) |> # Select only username and visits column  
+    filter(username != "anonymous") |>
+    arrange(desc(visits)) |> # Arrange values in descending order by the visits column
+    head(5) %>% # First five values, so the 5 usernames with the most visits
+    {ggplot(., aes(reorder(username, visits), visits)) + # ggplot, reorder the data by visits, which produces ascending order by default
+     geom_bar(stat = "identity") + # Bar plot, stat identity means leaves the data as is.    
+     coord_flip() + # Flip the axes, so the bars will be horizontal
+     theme_rstudio() + # Custom theme - see the themes.R
+     labs( # Labels
+       y = "Number of Shiny Sessions", # Y-axis label
+       x = NULL # Remove X-axis label
+     )} |>
+    ggplotly(tooltip = c("y")) |> # ggplotly (interactive ggplot), tooltip is the information given about points, so the y-axis information in this case
+    config(displayModeBar = F) # Remove the mode bar at the top right of the plot
 ```
 
 ### Static Content Hits by User (Top 5)
 
 ```{r static_by_user}
-data_arr$content %>%
-    group_by(user_guid) %>% 
-    summarise(visits = n()) %>% 
-    left_join(all_users, by = c(user_guid = "guid")) %>%
-    mutate(username = coalesce(username, "anonymous")) %>% 
-    select(username, visits) %>% 
-    arrange(desc(visits)) %>% 
-    head(5) %>% 
-    {ggplot(., aes(reorder(username, visits), visits)) + 
-     geom_bar(stat = "identity") +  
-     coord_flip() + 
-     theme_rstudio() +
-     labs(
-       y = "Number of Content Visits",
-       x = NULL
-     )} %>% 
-    ggplotly(tooltip = c("y")) %>% 
-    config(displayModeBar = F)
+# This is the same plot as above, except its the static content and not Shiny
+
+data_arr$content |> # Static content within the data array created above
+    group_by(user_guid) |>  # Group by user global unique identifier 
+    summarise(visits = n()) |> # Summarize the number of visits each user made 
+    left_join(all_users, by = c(user_guid = "guid")) |> # Left join the all_users frame by the global unique identifier
+    mutate(username = coalesce(username, "anonymous")) |> # New column called "username" which is a coalesced username column (gives first set of non NULL value) and replaces remaining NULL values with "anonymous".  
+    filter(username != "anonymous") |>
+    select(username, visits) |> # Select only username and visits column   
+    arrange(desc(visits)) |> # Arrange values in descending order by the visits column
+    head(5) %>% # First five values, so the 5 usernames with the most visits 
+    {ggplot(., aes(reorder(username, visits), visits)) + # ggplot, reorder the data by visits, which produces ascending order by default
+     geom_bar(stat = "identity") + # Bar plot, stat identity means leaves the data as is.      
+     coord_flip() + # Flip the axes, so the bars will be horizontal
+     theme_rstudio() + # Custom theme - see the themes.R
+     labs( # Labels
+       y = "Number of Content Visits", # Y-axis label
+       x = NULL # Remove X-axis label
+     )} |> 
+    ggplotly(tooltip = c("y")) |> # ggplotly (interactive ggplot), tooltip is the information given about points, so the y-axis information in this case
+    config(displayModeBar = F) # Remove the mode bar at the top right of the plot
 ```
 
 
@@ -144,45 +186,48 @@ Column
 ### Shiny Sessions Over Time
 
 ```{r shiny_over_time}
-data_arr$shiny %>%
-    mutate(day = round_date(started, "day")) %>% 
-    filter(day > today() - ddays(days_back)) %>% 
-    group_by(day) %>% 
-    summarise(visits = n()) %>% 
-    arrange(desc(visits)) %>% 
-    {ggplot(., aes(day, visits)) + 
-     geom_point() +
-     geom_smooth(se = FALSE) +
-     theme_rstudio() + 
-     labs(
-       y = "# of Shiny Sessions",
-       x = NULL
-     )} %>% 
-    ggplotly(tooltip = c("y")) %>% 
-    config(displayModeBar = F)
+# Number of Shiny sessions over time
+
+data_arr$shiny |> # Shiny app content within the data array created above
+    mutate(day = round_date(started, "day")) |> # Round all dates by day ('started' is defined above)  
+    filter(day > today() - ddays(days_back)) |> # Filter days that are greater than today, all the way to the days_back object (here, 30 days) 
+    group_by(day) |> # Group by day 
+    summarise(visits = n()) |> # Summarize the number of visits each user made 
+    arrange(desc(visits)) %>% # Arrange values in descending order by the visits column  
+    {ggplot(., aes(day, visits)) + # ggplot, x-axis is the rounded day column,y-axis is number of visits  
+     geom_point(size = 1.5) + # Scatterplot
+     geom_smooth(se = FALSE, color = "#4E84C4") + # Trend line, default is a LOESS smooth fit
+     theme_rstudio() + # Custom theme - see the themes.R
+     labs( # Labels
+       y = "# of Shiny Sessions", # Y-axis label
+       x = NULL # Remove X-axis labels
+     )} |>
+    ggplotly(tooltip = c("y")) |> # ggplotly (interactive ggplot), tooltip is the information given about points, so the y-axis information in this case
+    config(displayModeBar = F) # Remove the mode bar at the top right of the plot
 ```
 
 
 ### Static Content Visits Over Time
 
 ```{r static_over_time}
-data_arr$content %>%
-    mutate(time = ymd_hms(time),
-          day = round_date(time, "day")) %>% 
-    filter(day > today() - ddays(days_back)) %>% 
-    group_by(day) %>% 
-    summarise(visits = n()) %>% 
-    arrange(desc(visits)) %>% 
-    {ggplot(., aes(day, visits)) + 
-     geom_point() +
-     geom_smooth(se = FALSE) +
-     theme_rstudio() + 
-     labs(
-       y = "Content Hits",
-       x = NULL
-     )} %>% 
-    ggplotly(tooltip = c("y")) %>% 
-    config(displayModeBar = F)
+# Same as the previous plot but for static content 
+data_arr$content |> # Static content within the data array created above
+    mutate(time = ymd_hms(time), # New column, time in ymd_hms format
+          day = round_date(time, "day")) |> # Round all dates by day   
+    filter(day > today() - ddays(days_back)) |> # Filter days that are greater than today, all the way to the days_back object (here, 30 days)
+        group_by(day) |> # Group by day 
+    summarise(visits = n()) |> # Summarize the number of visits each user made 
+    arrange(desc(visits)) %>% # Arrange values in descending order by the visits column  
+    {ggplot(., aes(day, visits)) + # ggplot, x-axis is the rounded day column,y-axis is number of visits  
+     geom_point(size = 1.5) + # Scatterplot
+     geom_smooth(se = FALSE, color = "#4E84C4") + # Trend line, default is a LOESS
+     theme_rstudio() + # Custom theme - see the themes.R
+     labs( # Labels
+       y = "Content Hits", # Y-axis label
+       x = NULL # Remove X-axis label
+     )} |> 
+    ggplotly(tooltip = c("y")) |> # ggplotly (interactive ggplot), tooltip is the information given about points, so the y-axis information in this case
+    config(displayModeBar = F) # Remove the mode bar at the top right of the plot
 ```
 
 Column 
@@ -191,52 +236,54 @@ Column
 ### Top Applications
 
 ```{r top_shiny}
-data_arr$shiny %>% 
-  group_by(content_guid) %>% 
-  summarize(visits = n()) %>% 
-  arrange(desc(visits)) %>% 
-  head() %>% 
-  mutate(name = purrr::map_chr(content_guid, ~ content_title(client, .x, default_content_title))) %>% 
+# Top Shiny applications used
+
+data_arr$shiny |> # Shiny content within the data array created above 
+  group_by(content_guid) |> # Group by content name 
+  summarize(visits = n()) |> # Summarize the number of visits each Shiny app had
+  arrange(desc(visits)) |> # Arrange values in descending order by the visits column  
+  head() |> # First six rows, so the 6 Shiny apps with the most visits 
+  # Take the default content title from the content_guid column within the RStudio Connect client and put it into a new "name" column
+  mutate(name = purrr::map_chr(content_guid, ~ content_title(client, .x, default_content_title))) |> 
+  filter(name != "Unknown (Deleted Content?)") %>% 
+  # ggplot() with the X-axis from "name" as a 30 character long tidy string, and the Y-axis as visits 
   {ggplot(., aes(reorder(stringr::str_wrap(name, 30), visits), visits)) + 
-     geom_bar(stat = "identity") +  
-     coord_flip() + 
-     theme_rstudio() + 
-     labs(
-       y = "# of Shiny Sessions",
-       x = NULL
-     )} %>% 
-    ggplotly(tooltip = c("y")) %>% 
-    layout(margin = list(l = 0)) %>%
-    config(displayModeBar = F)
+     geom_bar(stat = "identity") + # Bar plot, stat identity means leaves the data as is.      
+     coord_flip() + # Flip the axes, so the bars will be horizontal
+     theme_rstudio() + # Custom theme - see the themes.R
+     labs( # Labels
+       y = "# of Shiny Sessions", # Y-axis label
+       x = NULL # Remove X-axis label
+     )} |> 
+    ggplotly(tooltip = c("y")) |> # ggplotly (interactive ggplot), tooltip is the information given about points, so the y-axis information in this case
+    layout(margin = list(l = 0)) |> # Left plot margin = 0
+    config(displayModeBar = F) # Remove the mode bar at the top right of the plot
 ```
 
 ### Top Static Content
 
 ```{r top_static}
-data_arr$content %>% 
-  group_by(content_guid) %>% 
-  summarize(visits = n()) %>% 
-  arrange(desc(visits)) %>% 
-  head() %>%
+# Same plot as directly above, but for static content usage
+
+data_arr$content |> # Static content within the data array created above 
+  group_by(content_guid) |> # Group by content name 
+  summarize(visits = n()) |> # Summarize the number of visits each static content had
+  arrange(desc(visits)) |> # Arrange values in descending order by the visits column
+  head() |> # First six rows, so the 6 static content with the most visits 
+  # Take the default content title from the content_guid column within the RStudio Connect client and put it into a new "name" column
   mutate(name = purrr::map_chr(content_guid, ~ content_title(client, .x, default_content_title))) %>% 
+  # ggplot() with the X-axis from "name" as a 30 character long tidy string, and the Y-axis as visits 
   {ggplot(., aes(reorder(stringr::str_wrap(name, 30), visits), visits)) + 
-     geom_bar(stat = "identity") +  
-     coord_flip() + 
-     theme_rstudio() + 
-     labs(
-       y = "Content Hits",
-       x = NULL
-     )} %>% 
-    ggplotly(tooltip = c("y")) %>% 
-    layout(margin = list(l = 0)) %>%
-    config(displayModeBar = F)
+     geom_bar(stat = "identity") + # Bar plot, stat identity means leaves the data as is.      
+     coord_flip() + # Flip the axes, so the bars will be horizontal
+     theme_rstudio() + # Custom theme - see the themes.R
+     labs( # Labels
+       y = "Content Hits", # Y-axis label
+       x = NULL # Remove X-axis label
+     )} |> 
+    ggplotly(tooltip = c("y")) |> # ggplotly (interactive ggplot), tooltip is the information given about points, so the y-axis information in this case
+    layout(margin = list(l = 0)) |> # Left plot margin = 0
+    config(displayModeBar = F) # Remove the mode bar at the top right of the plot
 ```
 
 
-```{r render_custom_email}
-render_connect_email(input = "usage-email.Rmd") %>%
-  attach_connect_email(
-    subject =  sprintf(" Content Usage Report For %s", month(today(), label = TRUE, abbr = FALSE)),
-    attach_output = TRUE
-  )
-```

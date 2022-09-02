@@ -1,15 +1,19 @@
 # Inspired by: https://drsimonj.svbtle.com/creating-corporate-colour-palettes-for-ggplot2
 
 #' RStudio ggplot2 Theme
-#' @import ggplot2
+#' @import ggplot2 
+#' ggpubr
+#' hrbrthemes
 #' @export
+
 theme_rstudio <- function() {
-  theme_minimal(base_size = 12, base_family = "sans") %+replace%
+  ggpubr::theme_pubclean(base_size = 14, base_family = "helvetica") %+replace%
     theme(
-      plot.title = element_text(size = 14, margin = margin(b = 1, unit = "cm"), hjust = 0),
+      plot.title = element_text(size = 16, margin = margin(b = 1, unit = "cm"), hjust = 0),
       title = element_text(color = '#585858'),
       legend.direction = 'horizontal',
-      legend.position = 'bottom'
+      legend.position = 'bottom',
+      axis.ticks.y = element_blank()
     )
 }
 
