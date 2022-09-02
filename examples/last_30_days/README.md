@@ -34,3 +34,6 @@ The report uses the environment variables `CONNECT_SERVER` and `CONNECT_API_KEY`
   waiting for the report to exit weirdly. It is there to protect you!
 
 <center><img src="report-screenshot.png" width = "600px"></center>
+
+The original materials are licensed under a [MIT License] (https://choosealicense.com/licenses/mit/) 
+Copyright 
