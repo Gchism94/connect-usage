@@ -4,9 +4,6 @@ This R Markdown report can be published as-is to your RStudio Connect server or
 used as a starting point for your own analysis. You can schedule the report and 
 distribute it via email (the email will include inline graphics!)
 
-Sample Report: http://colorado.rstudio.com/rsc/usage
-
-<center><img src="email-preview.png" width = "400px" height = "400x"></center>
 
 The report is generated using the [RStudio Connect Server
 API](https://docs.rstudio.com/connect/api). The API and data collection are both
