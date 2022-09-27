@@ -1,0 +1,100 @@
+---
+title: "University of Arizona RStudio Connect Landing Page"
+output: 
+  html_document:
+    theme:
+        base_font: "Proxima Nova, sans-serif"
+        heading_font: "Proxima Nova Bold, sans-serif"
+        bg: "#E2E9EB"
+        fg: "#0C234B"
+        primary: "#AB0520"
+        border-color: "#0C234B"
+---
+
+```{r setup, include = FALSE}
+library(connectwidgets)
+library(dplyr)
+
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+client <- connect()
+
+all_content <- client %>%
+  content()
+
+sample_content <- all_content %>%
+  arrange(desc(updated_time)) %>%
+  slice_head(n = 50)
+```
+
+![](https://source.unsplash.com/1920x1080/?forest "A random forest.")
+
+## RStudio Connect Usage
+
+Usage metrics for all content types hosted on the UArizona RStudio Connect server. Data is limited to the last 30 days and is refreshed weekly.
+
+```{r RStudio Connect Usage}
+all_content %>%
+  filter(title == "rsc-usage-ua-test") %>%
+  rsc_card()
+```
+
+------------------------------------------------------------------------
+
+RStudio Connect is a platform where you can publish and share your content with others within your research group and the diverse University of Arizona community.
+
+Here are some of the range of projects hosted on the UArizona Connect server:
+
+## User Content of the Month
+
+Some text describing the content.
+
+```{r User Content of the Month}
+sample_content %>%
+  slice(1) %>%
+  rsc_card()
+```
+
+### Shiny Apps
+
+[Shiny](https://shiny.rstudio.com/) is an R package that makes it easy for researchers and data scientists to build interactive web apps straight from R, without having to learn any new languages or frameworks. You can securely publish, host, and share Shiny applications with your group or all within our RStudio Connect community.
+
+Check out some example Shiny apps hosted on our Connect server below:
+
+```{r Shiny-Apps}
+sample_content %>%
+  filter(app_mode == "shiny") %>%
+  head(3) %>%
+  rsc_grid()
+```
+
+### Python Content
+
+RStudio Connect also publishes Python content like Jupyter notebooks, Flask applications, FASTAPI applications, and more.
+
+Find out more about integrating [RStudio Connect and Python](https://docs.rstudio.com/rsc/integration/python/).
+
+Check out some example Python content hosted on our Connect server below:
+
+```{r python-content}
+all_content %>%
+  filter(app_mode == "python-dash" | 
+           app_mode == "python-streamlit" | 
+           app_mode == "python-api") %>%
+  head(3) %>%
+  rsc_grid()
+```
+
+### Search and Filter
+
+Here you can search for content within our RStudio Connect server. Stay tuned for the integration of [tags](https://www.rstudio.com/blog/rstudio-connect-1-5-0-introducing-tags/), which can be assigned to content so that similar content can be grouped together.
+
+```{r search-and-filter}
+rsc_cols(
+  rsc_search(sample_content),
+  rsc_filter(sample_content),
+  widths = c(2, 2),
+  device = "md")
+
+rsc_table(sample_content)
+```

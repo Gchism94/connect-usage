@@ -1,5 +1,5 @@
 .navbar-inverse {
-  background-color:  #4c83b6;
+  background-color:  #0C234B;
 }
 
 .navbar-inverse .navbar-brand {
@@ -11,8 +11,8 @@
 }
 
 .value-box {
-    font-family: "Raleway","Helvetica Neue",Helvetica,Arial,sans-serif;
-    font-size: 16px;
+    font-family: "Proxima Nova Bold", sans-serif;
+    font-size: 18px;
 }
 
 .value-box .icon i {
@@ -20,11 +20,11 @@
 }
 
 .body {
-    font-family: "Raleway","Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-family: "Proxima Nova",sans-serif;
 }
 
 .chart-title {
-    font-family: "Raleway","Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-family: "Proxima Nova", sans-serif;
     font-size: 16px;
 }
 

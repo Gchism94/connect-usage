@@ -6,6 +6,7 @@ output:
     vertical_layout: fill
     css: styles.css
 ---
+
 ```{r preflight_check, results='asis', include=TRUE}
 # ---------------------------------------------------------------------------
 # this section is used to stop the report from rendering
@@ -57,9 +58,6 @@ pacman::p_load(
   plotly,
 # Interactive web-based apps
   shiny,
-# Produce HTML format email information from R
-# https://github.com/rstudio/blastula
-  blastula,
 # Format quantities in human readable formats
 # https://github.com/r-lib/prettyunits
   prettyunits,
@@ -109,24 +107,20 @@ all_users <- get_users(client, # Server & API
 
 # Object listing the data from shiny and content above
 data_arr <-   list(shiny = shiny, content = content)
-
 ```
 
+This content summary may contain privileged information. The report is generated using the [RStudio Connect Server API](http://docs.rstudio.com/connect/api) and the source code is [available online](https://github.com/Gchism94/connect-usage/tree/main/examples/last_30_days). Data is limited to the last `r days_back` days.
 
-This content summary may contain privileged information. The report is generated
-using the [RStudio Connect Server API](http://docs.rstudio.com/connect/api) and
-the source code is [available online](https://github.com/Gchism94/connect-usage/tree/main/examples/last_30_days). Data is limited to the last 
-`r days_back` days.
+**Static content** includes plots and other HTML content not rendered by the server.
 
+**Shiny Apps** are interactive web apps deployed directly from R.
 
-Column 
------------------------------------------------------------------------
+## Column
 
 ### Shiny Sessions by User (Top 5)
 
 ```{r shiny_by_user}
 # Plot showing the number of shiny sessions (top 5) grouped by user
-
 data_arr$shiny |> # Shiny data within the data array from above
     group_by(user_guid) |>  # Group by user global unique identifier 
     summarise(visits = n()) |> # Summarize the number of visits each user made
@@ -174,10 +168,7 @@ data_arr$content |> # Static content within the data array created above
     config(displayModeBar = F) # Remove the mode bar at the top right of the plot
 ```
 
-
-
-Column 
------------------------------------------------------------------------
+## Column
 
 ### Shiny Sessions Over Time
 
@@ -202,7 +193,6 @@ data_arr$shiny |> # Shiny app content within the data array created above
     config(displayModeBar = F) # Remove the mode bar at the top right of the plot
 ```
 
-
 ### Static Content Visits Over Time
 
 ```{r static_over_time}
@@ -226,8 +216,7 @@ data_arr$content |> # Static content within the data array created above
     config(displayModeBar = F) # Remove the mode bar at the top right of the plot
 ```
 
-Column 
------------------------------------------------------------------------
+## Column
 
 ### Top Applications
 
@@ -281,5 +270,3 @@ data_arr$content |> # Static content within the data array created above
     layout(margin = list(l = 0)) |> # Left plot margin = 0
     config(displayModeBar = F) # Remove the mode bar at the top right of the plot
 ```
-
-
