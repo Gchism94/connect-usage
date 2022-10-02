@@ -1,0 +1,13 @@
+name: rsc-usage-ua2
+title: rsc-usage-ua
+username: gchism
+account: gchism
+server: viz.datascience.arizona.edu
+hostUrl: https://viz.datascience.arizona.edu/__api__
+appId: 228
+bundleId: 793
+url: https://viz.datascience.arizona.edu:443/content/bec8aa84-9cf2-4544-95d6-32b9d7e5acc0/
+when: 1664485147.30094
+lastSyncTime: 1664485147.30095
+asMultiple: FALSE
+asStatic: FALSE

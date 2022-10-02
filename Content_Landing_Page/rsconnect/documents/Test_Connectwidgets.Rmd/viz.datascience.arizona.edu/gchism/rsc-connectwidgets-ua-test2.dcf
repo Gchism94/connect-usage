@@ -1,0 +1,13 @@
+name: rsc-connectwidgets-ua-test2
+title: rsc-connectwidgets-ua-test
+username: gchism
+account: gchism
+server: viz.datascience.arizona.edu
+hostUrl: https://viz.datascience.arizona.edu/__api__
+appId: 236
+bundleId: 801
+url: https://viz.datascience.arizona.edu:443/content/cdefd74a-8ebe-474e-b1af-00db52aa404a/
+when: 1664486653.74964
+lastSyncTime: 1664486653.74964
+asMultiple: FALSE
+asStatic: FALSE
