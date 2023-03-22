@@ -5,11 +5,21 @@ output:
     theme:
         base_font: "Proxima Nova, sans-serif"
         heading_font: "Proxima Nova Bold, sans-serif"
-        bg: "#E2E9EB"
+        bg: "#ffffff"
         fg: "#0C234B"
         primary: "#AB0520"
         border-color: "#D3D3D3"
 ---
+
+```{css, echo=FALSE}
+.rscgrid-item {
+  width: 22.75%;
+}
+
+.rscgrid__grid {
+  justify-content: space-between;
+}
+```
 
 ```{r setup, include = FALSE}
 library(connectwidgets)
